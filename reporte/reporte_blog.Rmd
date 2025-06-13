@@ -1,0 +1,89 @@
+---
+output:
+  html_document:
+    toc: false
+    css: apa_style.css
+    theme: united
+    highlight: pygments
+    df_print: paged
+    number_sections: false
+  pdf_document:
+    toc: false
+---
+
+::: {style="text-align: center; color: black; margin-top: 60px;"}
+<h1>TRABAJO 3: SISTEMAS DE PREDICCIÓN, CLASIFICACIÓN Y RECOMENDACIÓN</h1>
+<h2>REDES NEURONALES Y ALGORITMOS BIOINSPIRADOS</h2>
+<br><br><br>
+<p><strong>Presentado por:</strong></p>
+<p>Marcos David Carrillo Builes<br> Tomás Escobar Rivera<br> Jose Fernando López Ramírez <br> Esteban Vásquez Pérez</p>
+<br><br>
+<p><strong>Profesor:</strong> Juan David Ospina Arango</p>
+<p><strong>Monitor:</strong> Andrés Mauricio Zapata Rincón</p>
+<br> <img src="logo_unal.png" alt="University Logo" width="100px"/> <br><br>
+<p>Universidad Nacional de Colombia<br> Facultad de Minas<br> Ingeniería de Sistemas e Informática</p>
+<p><strong>`r format(Sys.Date(), "%d de %B de %Y")`</strong></p>
+:::
+
+```{r setup, include=FALSE}
+# ----------------------------------------
+# Setup mínimo para tablas con kableExtra
+# ----------------------------------------
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  knitr,       # Generación de tablas base
+  kableExtra,  # Estilización de tablas
+  magrittr     # Pipe %>%
+)
+
+# Configuración global de chunks
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+# ----------------------------------------
+```
+
+<div style="page-break-after: always;"></div>
+
+# Tabla de Contenidos {-}
+
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [1. Introducción](#1-introducción)
+  - [1.1 Contexto y Motivación](#11-contexto-y-motivación)
+  - [1.2 Planteamiento del Problema](#12-planteamiento-del-problema)
+  - [1.3 Objetivos](#13-objetivos)
+  - [1.4 Alcances y Limitaciones](#14-alcances-y-limitaciones)
+- [2. Metodología](#2-metodología)
+  - [2.1 Enfoque General](#21-enfoque-general)
+  - [2.2 Fases del Proyecto](#22-fases-del-proyecto)
+  - [2.3 Herramientas y Tecnologías](#23-herramientas-y-tecnologías)
+- [3. Módulo 1: Predicción de Demanda de Transporte](#3-módulo-1-predicción-de-demanda-de-transporte)
+  - [3.1 Descripción del Dataset](#31-descripción-del-dataset)
+  - [3.2 Análisis Exploratorio y Estacionalidad](#32-análisis-exploratorio-y-estacionalidad)
+  - [3.3 Preprocesamiento](#33-preprocesamiento)
+  - [3.4 Modelo de Series de Tiempo](#34-modelo-de-series-de-tiempo)
+  - [3.5 Evaluación del Modelo](#35-evaluación-del-modelo)
+- [4. Módulo 2: Clasificación de Conducción Distractiva](#4-módulo-2-clasificación-de-conducción-distractiva)
+  - [4.1 Descripción del Dataset](#41-descripción-del-dataset)
+  - [4.2 Preprocesamiento de Imágenes](#42-preprocesamiento-de-imágenes)
+  - [4.3 Arquitectura del Modelo](#43-arquitectura-del-modelo)
+  - [4.4 Evaluación y Resultados](#44-evaluación-y-resultados)
+  - [4.5 Análisis de Distracciones Comunes](#45-análisis-de-distracciones-comunes)
+- [5. Módulo 3: Recomendación de Destinos de Viaje](#5-módulo-3-recomendación-de-destinos-de-viaje)
+  - [5.1 Datos de Usuario y Preferencias](#51-datos-de-usuario-y-preferencias)
+  - [5.2 Técnicas de Recomendación](#52-técnicas-de-recomendación)
+  - [5.3 Evaluación del Sistema](#53-evaluación-del-sistema)
+  - [5.4 Ejemplos y Resultados](#54-ejemplos-y-resultados)
+- [6. Herramienta Web Integrada](#6-herramienta-web-integrada)
+  - [6.1 Diseño de la Interfaz](#61-diseño-de-la-interfaz)
+  - [6.2 Funcionalidades](#62-funcionalidades)
+  - [6.3 Tecnologías Implementadas](#63-tecnologías-implementadas)
+- [7. Resultados Generales y Discusión](#7-resultados-generales-y-discusión)
+  - [7.1 Análisis Comparativo](#71-análisis-comparativo)
+  - [7.2 Impacto en la Empresa](#72-impacto-en-la-empresa)
+- [8. Conclusiones y Recomendaciones](#8-conclusiones-y-recomendaciones)
+- [9. Aspectos Éticos y Creatividad](#9-aspectos-éticos-y-creatividad)
+- [10. Bibliografía](#10-bibliografía)
+- [11. Anexos](#11-anexos)
