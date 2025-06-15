@@ -1,3 +1,16 @@
+---
+title: Rna G4 Trabajo3
+emoji: 🐨
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 5.34.0
+app_file: gradio_app/app.py
+pinned: false
+license: mit
+short_description: Este proyecto implementa un sistema inteligente basado en RN
+---
+
 # Sistema Inteligente para Predicción, Clasificación y Recomendación en Transporte
 
 Este proyecto implementa un sistema inteligente basado en aprendizaje profundo que resuelve tres problemáticas clave en una empresa de transporte:
