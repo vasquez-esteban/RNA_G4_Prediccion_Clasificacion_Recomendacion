@@ -1,14 +1,12 @@
 # Sistema Inteligente para Predicción, Clasificación y Recomendación en Transporte
 
-Este repositorio contiene el **código fuente y modelos entrenados** para un sistema inteligente basado en aprendizaje profundo que resuelve tres problemáticas clave en una empresa de transporte:
+Este repositorio contiene el **código fuente** para un sistema inteligente basado en aprendizaje profundo que resuelve tres problemáticas clave en una empresa de transporte:
 
 1. **Predicción de demanda de rutas** (series de tiempo)
 2. **Clasificación de conducción distractiva** (imágenes)
 3. **Recomendación de destinos personalizados** (sistemas de recomendación)
 
-Cada modelo está entrenado, evaluado y guardado en el formato adecuado para ser integrado en una aplicación web. Los modelos son exportados en formatos **.h5** o **.pkl** y están disponibles para ser utilizados mediante una API, como por ejemplo **Hugging Face**.
-
-**Este repositorio solo incluye los modelos. La aplicación web que los integra se encuentra en un repositorio separado y se despliega en Hugging Face.**
+**Este repositorio solo incluye el código. La aplicación web que integra los modelos se encuentra en un repositorio separado y se despliega en Hugging Face.**
 
 ---
 
@@ -17,7 +15,6 @@ Cada modelo está entrenado, evaluado y guardado en el formato adecuado para ser
 ```
 RNA_G4_Sistema_Inteligente_Transporte/
 ├── LICENSE                        # Licencia del proyecto
-├── modelos                        # Modelos entrenados (en formato .h5 o .pkl)
 ├── README.md                      # Descripción del proyecto
 ├── reporte                        # Reporte técnico (RMarkdown y HTML)
 ├── src                            # Código fuente modular (demanda, clasificación, recomendación)
@@ -34,8 +31,8 @@ RNA_G4_Sistema_Inteligente_Transporte/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/vasquez-esteban/RNA_G4_Sistema_Inteligente_Transporte
-cd RNA_G4_Sistema_Inteligente_Transporte
+git clone https://github.com/vasquez-esteban/RNA_G4_Prediccion_Clasificacion_Recomendacion
+cd RNA_G4_Prediccion_Clasificacion_Recomendacion
 ```
 
 #### En Windows:
@@ -50,13 +47,11 @@ setup.bat
 
 Dentro del directorio correspondiente (por ejemplo, `src/demanda`, `src/clasificacion` o `src/recomendacion`), están los cuadernos de Kaggle usados para cada modelo.
 
-Una vez entrenado el modelo, se guarda en `modelos/` en formato `.h5` o `.pkl`.
-
 ---
 
 ## Referencias
 
-La **aplicación web** que integra estos modelos se encuentra en un repositorio separado y está desplegada en **Hugging Face**. Puedes acceder a ella [aquí](https://huggingface.co/spaces/tu-usuario/nombre-del-repositorio). En este repositorio, la aplicación web utiliza los modelos entrenados desde este repositorio para realizar las predicciones, clasificación y recomendaciones.
+La **aplicación web** que integra estos modelos se encuentra en un repositorio separado y está desplegada en **Hugging Face**. En este repositorio, la aplicación web utiliza los modelos entrenados desde este repositorio para realizar las predicciones, clasificación y recomendaciones.
 
 ---
 
@@ -77,12 +72,12 @@ install.packages(c("ggplot2", "dplyr", "readxl", "kableExtra", "gganimate"))
 
 ## Publicaciones
 
-- Reporte en RPubs: [Reporte](https://rpubs.com/evasp/rna-g4-aplicaciones-prediccion-clasificacion-recomendacion)
-- **App Web**: Desplegada en Hugging Face [aquí](https://huggingface.co/spaces/tu-usuario/nombre-del-repositorio).
-- Video explicativo
+- Reporte en RPubs: [Reporte](https://rpubs.com/evasp/rna-g4-trabajo3)
+- **App Web**: Desplegada en Hugging Face [aquí](https://huggingface.co/spaces/evasp/rna-g4-trabajo3).
+- Video explicativo.
 
 ---
 
 ## Estado Final
 
-Este repositorio contiene los modelos funcionales entrenados. La app web está integrada en un repositorio separado y se despliega en **Hugging Face**. Ambos están documentados para su fácil uso e integración.
+Este repositorio contiene reportes de los modelos entrenados. La app web está integrada en un repositorio separado y se despliega en **Hugging Face**. Ambos están documentados para su fácil uso e integración.
