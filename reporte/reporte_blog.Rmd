@@ -173,7 +173,10 @@ Las herramientas utilizadas en el proyecto fueron:
 
 El uso articulado de estas tecnologías nos permitió mantener un flujo de trabajo ordenado, reproducible y alineado con las necesidades técnicas y comunicativas del proyecto.
 
+
 # 3. Módulo 1 - Predicción de Demanda de Transporte {#modulo1}
+
+
 
 # 4 Módulo 2: Clasificación de Conducción Distractiva {#modulo2}
 
@@ -191,9 +194,9 @@ El conjunto de datos utilizado proviene de escenas reales captadas dentro de veh
 - `talking_phone`: uso del teléfono en llamada
 - `other_activities`: cualquier otra actividad distractora, como comer, dormir o interactuar con otros pasajeros
 
-El total de imágenes asciende a **7.267**, con una distribución de clases razonablemente balanceada. Esta distribución se visualiza en la Figura 1.
+El total de imágenes asciende a **7.267**, con una distribución de clases razonablemente balanceada. Esta distribución se visualiza en la Figura 10.
 
-```{r fig1-distrib-clases, out.width="60%", fig.align='center', fig.cap='Figura 1. Distribución de imágenes por clase en el dataset'}
+```{r fig1-distrib-clases, out.width="60%", fig.align='center', fig.cap='Figura 10. Distribución de imágenes por clase en el dataset'}
 knitr::include_graphics("imgs/drivers_classif/distrib_clase.png")
 ```
 
@@ -203,9 +206,9 @@ Las imágenes se redimensionaron a 224x224 píxeles y fueron procesadas utilizan
 
 Adicionalmente, empleamos `class_weights` calculados con `sklearn.utils.class_weight.compute_class_weight()` para penalizar la pérdida en función de la frecuencia de cada clase.
 
-También realizamos una exploración visual de las imágenes y ejemplos aleatorios, como se muestra en la Figura 2.
+También realizamos una exploración visual de las imágenes y ejemplos aleatorios, como se muestra en la Figura 11.
 
-```{r fig2-ejemplos-batch, out.width="60%", fig.align='center', fig.cap='Figura 2. Ejemplos aleatorios de imágenes del dataset'}
+```{r fig2-ejemplos-batch, out.width="60%", fig.align='center', fig.cap='Figura 11. Ejemplos aleatorios de imágenes del dataset'}
 knitr::include_graphics("imgs/drivers_classif/example_batch.png")
 ```
 
@@ -222,15 +225,15 @@ Este enfoque bottom-up nos permitió controlar el tamaño y complejidad del mode
 
 ## 4.4 Evaluación y Resultados {#44-evaluación-y-resultados}
 
-La Figura 3 muestra el comportamiento del modelo durante el entrenamiento. Se observa una convergencia estable, aunque con señales de sobreajuste moderado a partir de la época 25.
+La Figura 12 muestra el comportamiento del modelo durante el entrenamiento. Se observa una convergencia estable, aunque con señales de sobreajuste moderado a partir de la época 25.
 
-```{r fig3-accuracy-loss, out.width="60%", fig.align='center', fig.cap='Figura 3. Evolución de precisión y pérdida durante el entrenamiento'}
+```{r fig3-accuracy-loss, out.width="60%", fig.align='center', fig.cap='Figura 12. Evolución de precisión y pérdida durante el entrenamiento'}
 knitr::include_graphics("imgs/drivers_classif/accuracy_loss.png")
 ```
 
-La matriz de confusión (Figura 4) muestra un rendimiento destacado en clases clave como `talking_phone`, `texting_phone` y `safe_driving`.
+La matriz de confusión (Figura 12) muestra un rendimiento destacado en clases clave como `talking_phone`, `texting_phone` y `safe_driving`.
 
-```{r fig4-conf-matrix, out.width="60%", fig.align='center', fig.cap='Figura 4. Matriz de confusión del modelo en el conjunto de validación'}
+```{r fig4-conf-matrix, out.width="60%", fig.align='center', fig.cap='Figura 13. Matriz de confusión del modelo en el conjunto de validación'}
 knitr::include_graphics("imgs/drivers_classif/confusion_matrix.png")
 ```
 
@@ -245,7 +248,7 @@ tabla_metricas <- data.frame(
 )
 
 knitr::kable(tabla_metricas,
-  caption = "Tabla 1: Métricas por clase para el modelo de clasificación de conducción distractiva",
+  caption = "Tabla 2: Métricas por clase para el modelo de clasificación de conducción distractiva",
   format = "html"
 ) %>%
   kableExtra::kable_styling(
@@ -301,11 +304,142 @@ En conclusión, el modelo cumple con los objetivos de clasificación propuestos,
 
 
 
+
+
 # 5. Módulo 3 - Recomendación de Destinos de Viaje {#modulo3}
+
+## 5.1 Introducción
+
+En este módulo desarrollamos un sistema de recomendación de destinos basado en filtrado colaborativo. El objetivo es predecir la calificación (`ExperienceRating`) que un usuario daría a un destino turístico, utilizando únicamente su historial de visitas y características embebidas.
+
+Esta tarea se formuló como un problema de regresión, donde el modelo predice una calificación entre 1 y 5. Se utilizaron embeddings para representar tanto a usuarios como destinos y se entrenó un modelo de factorización matricial con Keras.
+
+## 5.2 Análisis Exploratorio de Datos
+
+Antes de construir el modelo, se llevó a cabo un análisis exploratorio para entender la distribución de los datos y evaluar qué variables debían ser incluidas o descartadas.
+
+### Distribución de Calificaciones
+
+```{r fig1, out.width="60%", fig.align='center', fig.cap='Figura 1. Distribución de la variable ExperienceRating'}
+knitr::include_graphics("imgs/recommend/rating_dist.png")
+```
+
+La variable `ExperienceRating` presenta una distribución relativamente uniforme, sin sesgo marcado hacia los extremos. Esto sugiere que el modelo no deberá compensar clases desbalanceadas.
+
+### Destinos más populares
+
+```{r fig2, out.width="60%", fig.align='center', fig.cap='Figura 2. Tipos de destino más comunes en el dataset'}
+knitr::include_graphics("imgs/recommend/common_dest.png")
+```
+
+La frecuencia de destinos está relativamente balanceada entre las distintas categorías, destacándose ligeramente los destinos de naturaleza e historia.
+
+### Distribución por género
+
+```{r fig3, out.width="60%", fig.align='center', fig.cap='Figura 3. Distribución por género en los registros'}
+knitr::include_graphics("imgs/recommend/gender_dist.png")
+```
+
+Se observa una distribución balanceada entre hombres y mujeres, lo cual es positivo en términos de representatividad del modelo.
+
+### Calificación por tipo de destino
+
+```{r fig4, out.width="60%", fig.align='center', fig.cap='Figura 4. Distribución de ratings por tipo de destino'}
+knitr::include_graphics("imgs/recommend/rating_by_dest_type.png")
+```
+
+Las medianas de calificación son similares entre los distintos tipos de destino, sin variaciones fuertes que justifiquen un modelo específico por categoría.
+
+### Correlaciones con `ExperienceRating`
+
+```{r fig5, out.width="60%", fig.align='center', fig.cap='Figura 5. Correlación de variables con ExperienceRating'}
+knitr::include_graphics("imgs/recommend/corr_obj.png")
+```
+
+No se evidencian correlaciones lineales fuertes con la variable objetivo, lo que valida el uso de una red neuronal para modelar relaciones no lineales complejas.
+
+### Preferencias más comunes
+
+```{r fig6, out.width="60%", fig.align='center', fig.cap='Figura 6. Preferencias más comunes de los usuarios'}
+knitr::include_graphics("imgs/recommend/user_preferences.png")
+```
+
+Las preferencias de los usuarios son consistentes con las categorías más visitadas, especialmente el interés por lo histórico y la naturaleza.
+
+### Distribución de visitas por mes
+
+```{r fig7, out.width="60%", fig.align='center', fig.cap='Figura 7. Cantidad de visitas registradas por mes'}
+knitr::include_graphics("imgs/recommend/visits_by_mo.png")
+```
+
+Los datos están concentrados en el primer trimestre del año. Esto debe tenerse en cuenta para evitar sesgos temporales en los resultados.
+
+## 5.3 Arquitectura del Modelo
+
+El modelo empleado es una red neuronal basada en factorización matricial simple con Keras. Esta arquitectura consiste en:
+
+- Embedding para `UserID` y `DestinationID`
+- Producto punto entre vectores de usuario y destino
+- Salida única como predicción continua (regresión)
+
+Se utilizó la función de pérdida MSE y el optimizador Adam. El modelo fue entrenado con `EarlyStopping` y `ModelCheckpoint`.
+
+## 5.4 Evaluación y Resultados
+
+### Curva de pérdida durante el entrenamiento
+
+```{r fig9, out.width="60%", fig.align='center', fig.cap='Figura 8. Evolución de la pérdida MSE en train y validación'}
+knitr::include_graphics("imgs/recommend/mse.png")
+```
+
+Se observa una clara convergencia del modelo. La validación se estabiliza alrededor de la época 15, lo cual sugiere una buena capacidad de generalización.
+
+### Predicción vs Real
+
+```{r fig8, out.width="60%", fig.align='center', fig.cap='Figura 9. Comparación entre rating real y predicho'}
+knitr::include_graphics("imgs/recommend/predictions.png")
+```
+
+El modelo tiende a subestimar ligeramente los valores altos de rating, pero logra capturar la tendencia general de los datos.
+
+### Métricas Finales
+
+```{r tabla-metricas-recom, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Métrica = c("MAE", "RMSE", "Correlación"),
+    Valor = c(1.226, 1.493, 0.083)
+  ),
+  caption = "Tabla 1: Métricas finales del modelo de recomendación",
+  format = "html"
+) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
+  kableExtra::row_spec(0, bold = TRUE, color = "black", background = "lightgray")
+```
+
+## 5.5 Conclusiones
+
+- Se logró construir un sistema de recomendación con un error promedio de 1.2 estrellas, lo cual es aceptable para fines exploratorios.
+- El modelo es simple, eficiente y puede integrarse fácilmente en una plataforma de turismo inteligente.
+- El filtrado colaborativo con embeddings demuestra ser efectivo incluso en conjuntos de datos con poca correlación lineal.
+
+
+
 
 # 6. Herramienta Web Integrada {#herramienta-web}
 
+Gráficas de predicción vs. demanda real para cada ruta de transporte.
+
+Ejemplos de imágenes clasificadas correctamente y casos erróneos.
+
+Ejemplos de recomendaciones generadas para diferentes usuarios, mostrando destinos de viaje basados en
+preferencias previas.
+Análisis de la efectividad de las recomendaciones (usuarios satisfechos, incremento en la demanda de
+ciertas rutas, etc.).
+
+
 # 7. Resultados Generales y Discusión {#resultados}
+
 
 ## Lecciones Aprendidas y Limitaciones del Módulo 2
 
@@ -320,9 +454,30 @@ Sin embargo, enfrentamos limitaciones que vale la pena mencionar:
 
 Estas lecciones sientan las bases para futuras mejoras del sistema y para su integración en contextos reales de monitoreo de seguridad vial.
 
+## Lecciones Aprendidas y Limitaciones del Módulo 3
+
+Durante el desarrollo del sistema de recomendación basado en filtrado colaborativo, comprendimos que incluso modelos simples como la factorización matricial con embeddings pueden ofrecer un rendimiento competitivo cuando se entrenan adecuadamente y se alimentan con datos bien estructurados.
+
+Una de las principales lecciones fue el valor de **representar entidades (usuarios y destinos) mediante vectores entrenables**, lo cual permite capturar relaciones latentes sin necesidad de utilizar información explícita o textual. Esta estrategia redujo la dimensionalidad del problema y facilitó la generalización.
+
+Asimismo, aprendimos que, a pesar de la aparente debilidad de correlaciones lineales entre variables y la calificación (`ExperienceRating`), un modelo no lineal fue capaz de extraer patrones útiles para la predicción.
+
+Sin embargo, enfrentamos algunas limitaciones importantes:
+
+- El modelo tiende a **subestimar calificaciones altas** y sobreestimar las bajas, probablemente debido a la regularización implícita en el aprendizaje de los embeddings.
+- El sistema no incorpora aún información contextual rica (como texto libre o comportamiento reciente), lo cual limita su capacidad para personalizar recomendaciones más allá del historial básico.
+- Las recomendaciones actuales se basan en **preferencias históricas globales**, sin tener en cuenta factores como la temporalidad, la disponibilidad de destinos o las restricciones del usuario.
+
+Estas experiencias nos orientan hacia futuras mejoras como la incorporación de filtros dinámicos, variables contextuales y estrategias híbridas que combinen filtrado colaborativo con contenido explícito.
+
+
+
+
 # 8. Conclusiones y Recomendaciones {#conclusiones}
 
+
 # 9. Aspectos Éticos y Creatividad {#etica}
+
 
 # 10. Bibliografía {#bibliografia}
 
