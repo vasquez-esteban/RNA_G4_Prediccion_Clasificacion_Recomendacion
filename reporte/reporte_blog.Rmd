@@ -173,9 +173,332 @@ Las herramientas utilizadas en el proyecto fueron:
 
 El uso articulado de estas tecnologías nos permitió mantener un flujo de trabajo ordenado, reproducible y alineado con las necesidades técnicas y comunicativas del proyecto.
 
-
 # 3. Módulo 1 - Predicción de Demanda de Transporte {#modulo1}
 
+## 3.1 Descripción del Dataset
+
+En este proyecto generamos un dataset sintético que simula la demanda de transporte turístico en India, específicamente en rutas que parten desde **Delhi Hub** hacia cinco destinos turísticos populares: **Taj Mahal, Goa Beaches, Jaipur City, Kerala Backwaters y Leh Ladakh**.
+
+El objetivo principal de este dataset es modelar y predecir la demanda diaria de pasajeros en función de múltiples factores temporales, operativos y externos.
+
+### Variables Incluidas
+
+```{r tabla-variablesn}
+tabla_variables <- data.frame(
+  Variable = c(
+    "ride_id", "travel_date", "travel_time", "departure_city", "destination",
+    "vehicle_type", "max_capacity", "actual_passengers", "load_factor",
+    "payment_method", "weather_condition", "ticket_price", "duration_hours",
+    "special_event", "month", "day_of_week", "is_weekend", "canceled"
+  ),
+  
+  Descripcion = c(
+    "Identificador único del viaje",
+    "Fecha del viaje",
+    "Hora de salida del viaje",
+    "Ciudad de origen (siempre 'Delhi Hub')",
+    "Ciudad de destino (5 opciones)",
+    "Tipo de vehículo (luxury_bus, standard_bus, minibus, van)",
+    "Capacidad máxima del vehículo",
+    "Número real de pasajeros en ese viaje",
+    "Factor de ocupación (pasajeros / capacidad)",
+    "Método de pago (cash, mobile_payment, credit_card, travel_card)",
+    "Condiciones meteorológicas (sunny, rainy, cloudy, foggy, stormy)",
+    "Precio del boleto según el destino",
+    "Duración estimada del viaje en horas",
+    "Indicador de evento especial (1 si hay evento, 0 si no)",
+    "Mes del año (1 a 12)",
+    "Día de la semana (0 = lunes, ..., 6 = domingo)",
+    "Indicador de fin de semana (TRUE/FALSE)",
+    "Indicador de cancelación del viaje (1 si fue cancelado, 0 si no)"
+  ),
+  
+  Tipo = c(
+    "Numérica", "Fecha", "Hora", "Categórica", "Categórica",
+    "Categórica", "Numérica", "Numérica", "Numérica",
+    "Categórica", "Categórica", "Numérica", "Numérica",
+    "Binaria", "Numérica", "Numérica", "Binaria", "Binaria"
+  )
+)
+
+knitr::kable(tabla_variables,
+  caption = "Tabla 1: Descripción de las variables del dataset de demanda de transporte",
+  format = "html"
+) %>%
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE
+  ) %>%
+  kableExtra::column_spec(1:3, width = "6cm") %>%
+  kableExtra::row_spec(0, bold = TRUE, color = "black", background = "lightgray")
+```
+
+
+### Patrones Realistas Incluidos en el Dataset
+
+- **Estacionalidad:** Cada destino presenta temporadas altas y bajas que afectan significativamente la demanda. Por ejemplo, Goa Beaches tiene alta demanda en invierno (noviembre a marzo) y muy baja en temporada de lluvias (junio a septiembre).
+
+- **Efecto de fin de semana:** Hay un incremento de la demanda los sábados y domingos.
+
+- **Efecto horario:** Se observa mayor ocupación en las salidas de la mañana (7-10 am) y en la tarde (4-7 pm).
+
+- **Condiciones climáticas:** El mal clima (lluvia, tormentas o niebla) reduce la demanda debido a las condiciones desfavorables para el turismo.
+
+- **Eventos especiales:** En días con eventos turísticos o culturales, la demanda se incrementa aproximadamente un 50%.
+
+- **Cancelaciones:** Un 5% de los viajes son cancelados, lo cual impacta directamente en el número de pasajeros de esos viajes (se fijan en 0).
+
+### Objetivo del Dataset
+
+Este dataset fue diseñado para resolver un problema de predicción de demanda futura. El modelo puede aprender a anticipar cuántos pasajeros habrá en un viaje futuro, teniendo en cuenta factores temporales (mes, día, hora), condiciones meteorológicas, eventos especiales, tipo de vehículo, capacidad y patrones de comportamiento de los usuarios.
+
+Esta predicción es útil para:
+
+- **Optimización de operaciones:** Seleccionar el tamaño adecuado de los vehículos.
+- **Gestión de recursos:** Planificar mejor conductores, horarios y frecuencia.
+- **Mejora en la rentabilidad:** Ajustar precios o promociones según la demanda esperada.
+
+
+## 3.2 EDA
+
+### 1. **Demanda Diaria Total de Transporte (Gráfico 1)**
+
+```{r fig1-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 1.'}
+knitr::include_graphics("imgs/demanda/eda_demanda_1.png")
+```
+
+* Hay **variabilidad diaria considerable**, pero la serie parece mantener un comportamiento relativamente estable en el largo plazo.
+* Hay picos y valles notables, lo que sugiere que podría haber **patrones estacionales** o eventos puntuales que afectan la demanda (feriados, clima, etc.).
+* Esto sugiere que se requiere un modelo que pueda manejar fluctuaciones a corto plazo (como una LSTM con input diario o semanal).
+
+### 2. **Descomposición Estacional de la Demanda Mensual (Gráfico 2)**
+
+```{r fig2-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 2. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_2.png")
+```
+
+* **Tendencia:** Aumenta hasta 2022 y luego se estabiliza o decrece ligeramente.
+* **Estacionalidad:** Se observa un patrón repetitivo claro (picos anuales), indicando que hay **efectos mensuales estacionales** importantes.
+* **Residuos:** Parecen ser ruido blanco o variaciones aleatorias no explicadas por el modelo.
+
+La estacionalidad mensual sugiere que se debe incorporar **componentes estacionales (ej. SARIMA, LSTM con embeddings de mes)**.
+
+### 3. **Función de Autocorrelación (ACF) y Autocorrelación Parcial (PACF) (Gráfico 3)**
+
+```{r fig3-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 3. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_3.png")
+```
+
+* La ACF tiene un primer valor muy alto (esperado) y luego valores bajos pero positivos durante varios lags → indica que hay **alguna autocorrelación**, pero no muy fuerte.
+* La PACF decae rápido → sugiere que la serie podría ser **ARIMA de bajo orden** o que **no tiene una fuerte dependencia temporal inmediata** (lo que puede favorecer enfoques tipo LSTM con ventanas más amplias).
+
+### 4. **Comparación con Diferenciación (Gráfico 4)**
+
+```{r fig4-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 4. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_4.png")
+```
+
+* Al aplicar **diferenciación de primer orden** y **estacional (lag=7 días)**, la serie parece estabilizarse alrededor de 0.
+* Esto sugiere que la serie **no es estacionaria originalmente**, pero puede transformarse en estacionaria mediante diferenciación.
+
+Esto es importante si se van a usar modelos tradicionales como SARIMA o ARIMA: necesitan estacionarizar la serie antes.
+
+### 5. **Demanda Mensual por Destino (Gráfico 5)**
+
+```{r fig5-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 5. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_5.png")
+```
+
+* Las rutas tienen **comportamientos distintos**, por ejemplo:
+
+  * **Leh Ladakh** muestra una estacionalidad **muy marcada** (actividad sólo en meses específicos).
+  * **Taj Mahal** y **Goa Beaches** muestran una demanda más constante.
+
+* Esto refuerza la necesidad de **modelos por ruta específica**, posiblemente entrenando un modelo individual por ruta o incluyendo la variable "ruta" como input categórico en un modelo multivariado (ej. LSTM multirruta).
+
+### 6. **Demanda Promedio por Día de la Semana (Gráfico 6)**
+
+```{r fig6-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 6. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_6.png")
+```
+
+* Sábados y domingos tienen mayor demanda → **hay un patrón semanal claro**.
+* Esto debe incluirse como una variable categórica en el modelo (día de la semana como input).
+
+### 7. **Distribución de Pasajeros por Mes (Gráfico 7)**
+
+```{r fig7-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 7. '}
+knitr::include_graphics("imgs/demanda/eda_demanda_7.png")
+```
+
+* Aunque los promedios parecen similares, los rangos (mínimo y máximo) varían, especialmente entre junio y septiembre.
+* Puede haber más **variabilidad en meses de vacaciones o eventos especiales**, lo cual justifica agregar "mes" como variable en el modelo o aplicar normalización por mes.
+
+---
+
+Basado en el análisis exploratorio y en los requerimientos específicos del problema, la arquitectura seleccionada fue un modelo híbrido basado en LSTM con un mecanismo de atención. Esta elección se justifica porque las redes LSTM son especialmente adecuadas para trabajar con datos secuenciales como las series temporales, permitiendo capturar dependencias de largo plazo dentro de la demanda histórica. Además, la incorporación de una capa de atención permite al modelo enfocar su capacidad predictiva en los patrones más relevantes dentro de la secuencia, como las variaciones estacionales, los cambios por horarios o las fluctuaciones debidas a eventos especiales. Por otra parte, esta arquitectura es capaz de integrar tanto información temporal como variables categóricas o contextuales, lo que la hace especialmente robusta para abordar la complejidad del problema planteado.
+
+
+## 3.3 Preprocesamiento y Preparación de Datos
+
+El preprocesamiento del dataset incluyó un proceso de ingeniería de características donde, a partir de la fecha del viaje (`travel_date`), se extrajeron el año, el mes y el día de la semana. De manera similar, de la hora de salida (`travel_time`) se derivó la variable `hour`. También se generó la variable `high_season`, que indica si un viaje ocurre durante la temporada alta, definida según cada destino. Por ejemplo, para Taj Mahal corresponde de noviembre a febrero, para Goa Beaches de noviembre a marzo y para Leh Ladakh de abril a junio, entre otros.
+
+Se eliminaron variables que no aportaban información relevante o que podían generar fuga de datos, como `ride_id`, `travel_date`, `travel_time`, `load_factor`, `canceled` e `is_weekend`. Las variables finales se dividieron en categóricas (como destino, tipo de vehículo, método de pago o clima) y numéricas (como capacidad, precio, duración, variables temporales y `special_event`).
+
+El pipeline de preprocesamiento incluyó imputación de datos faltantes (mediana para variables numéricas y moda para categóricas), junto con escalado de las numéricas mediante `StandardScaler` y codificación one-hot para las categóricas.
+
+La división de datos se realizó respetando la secuencia temporal, utilizando el 80% de las fechas más antiguas para entrenamiento y el 20% más recientes para prueba. Posteriormente, se estructuró la serie temporal de demanda (`actual_passengers`) en secuencias, donde cada muestra utiliza los 90 días anteriores como entrada para predecir la demanda de los 30 días siguientes. Este esquema permite capturar la dependencia temporal de la serie y es adecuado para modelos LSTM.
+
+
+## 3.4 Construcción y Entrenamiento del Modelo
+
+### Arquitectura del Modelo
+
+El modelo desarrollado es una red neuronal secuencial con memoria a largo plazo (LSTM) complementada con un mecanismo de atención, diseñada para predecir la demanda de transporte durante los próximos 30 días, utilizando como entrada un historial de 90 días.
+
+La arquitectura se compone de los siguientes elementos:
+
+1. **Entrada**
+   Una secuencia temporal con la forma `(90 días, 1 feature)`, que corresponde a la demanda histórica de pasajeros previamente escalada.
+
+2. **Capa LSTM**
+
+   * Una capa LSTM con 128 unidades y `return_sequences=True`, lo que permite devolver una salida por cada paso temporal de la secuencia.
+   * Posteriormente se aplica una capa de regularización `Dropout` con una tasa de 0.2 para evitar sobreajuste.
+
+3. **Mecanismo de Atención**
+   Este componente permite que el modelo aprenda a asignar diferentes pesos a cada paso temporal de la secuencia, enfocándose más en aquellos días del pasado que son más relevantes para la predicción futura.
+   El mecanismo funciona de la siguiente manera:
+
+   * Se calcula un vector de atención mediante una capa densa con activación `tanh`.
+   * Este vector se normaliza mediante `softmax` para convertirlo en pesos.
+   * Los pesos se aplican sobre la salida de la LSTM mediante una operación de multiplicación ponderada.
+   * Finalmente, se genera una representación agregada de la secuencia como suma ponderada de los estados ocultos.
+
+4. **Capas Densas**
+
+   * Una capa `Dense` con 64 neuronas y activación `relu` para capturar relaciones no lineales.
+   * Se agrega una segunda capa `Dropout` con tasa de 0.1 como medida de regularización.
+
+5. **Capa de Salida**
+
+   * Una capa `Dense` con 30 neuronas, que corresponde a la predicción de la demanda para los 30 días siguientes.
+
+6. **Compilación**
+
+   * Función de pérdida: `mean_squared_error (mse)`.
+   * Métrica de evaluación: `mean_absolute_error (mae)`.
+   * Optimizador: `Adam` con tasa de aprendizaje de 0.001.
+
+### Callbacks Utilizados
+
+Se incorporan dos mecanismos para mejorar el entrenamiento y evitar el sobreajuste:
+
+* **EarlyStopping**
+  Detiene el entrenamiento si la métrica de validación no mejora durante 15 épocas consecutivas y restaura los mejores pesos obtenidos hasta ese momento.
+
+* **ModelCheckpoint**
+  Guarda automáticamente el mejor modelo basado en la pérdida de validación, en un archivo llamado `best_model.h5`.
+
+### Entrenamiento del Modelo
+
+El modelo se entrena con los siguientes parámetros:
+
+* Número máximo de épocas: 100.
+* Tamaño del batch: 32.
+* Datos de validación: Se utiliza el 20% más reciente de la serie temporal.
+* Verbose: Nivel 1 (muestra el progreso del entrenamiento en consola).
+
+El entrenamiento finaliza de forma anticipada si la métrica de validación deja de mejorar, gracias al uso de EarlyStopping.
+
+
+## 3.5 Resultados del Modelo
+
+### Desempeño del Modelo
+
+Después del proceso de entrenamiento utilizando la arquitectura híbrida LSTM con atención, se obtuvieron los siguientes resultados:
+
+* **Pérdida (loss) en entrenamiento:** 0.0211
+* **Error Absoluto Medio (MAE) en entrenamiento:** 0.1167
+* **MAE en datos de prueba:** 0.1132 (escala normalizada)
+
+Métricas calculadas sobre los datos reales (desescalados):
+
+* **MAE en test:** aproximadamente **113 pasajeros**
+* **RMSE en test:** aproximadamente **771.79 pasajeros**
+
+Estadísticas de la demanda real en el conjunto de prueba:
+
+* **Media de la demanda real:** 10,724.46 pasajeros
+* **Desviación estándar:** 925.96 pasajeros
+
+
+## 3.6 Análisis de las Métricas
+
+* El **MAE (Error Absoluto Medio)** de aproximadamente **113 pasajeros** indica que, en promedio, el modelo se equivoca por esa cantidad al predecir la demanda diaria. Comparado con una media de más de 10,000 pasajeros diarios, este error representa un porcentaje muy bajo (aproximadamente **1% del valor medio**), lo cual es excelente para este tipo de predicciones.
+
+* El **RMSE (Raíz del Error Cuadrático Medio)** es más alto, **771.79 pasajeros**, lo que indica que aunque la mayoría de las predicciones son precisas, existen algunos días con errores significativamente mayores (los cuales afectan más al RMSE que al MAE, por ser sensible a valores extremos).
+
+* La baja pérdida (`loss = 0.0211`) y el bajo MAE en entrenamiento y validación sugieren que el modelo ha logrado un buen ajuste, sin sobreajuste evidente.
+
+* Comparado con la desviación estándar de la demanda real (**925.96**), el RMSE es algo menor pero está en la misma magnitud, lo cual es esperable. Esto implica que el error típico es menor que la variación natural de la demanda.
+
+
+## 3.7 Gráficas de los resultados
+
+```{r fig8-per-route-goa, out.width="70%", fig.align='center', fig.cap='Figura 8. Comparación entre la demanda real y la demanda predicha para la ruta Goa Beaches.'}
+knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Goa_Beaches.png")
+```
+
+**Descripción:**
+En la **Figura 8** se observa la comparación entre la demanda real y la demanda predicha específicamente para la ruta hacia **Goa Beaches**. El modelo logra capturar correctamente los picos de alta demanda y las caídas, manteniéndose generalmente cerca de los valores reales. Sin embargo, pueden observarse pequeñas desviaciones en algunos períodos, lo cual es esperable debido a factores impredecibles o ruido en los datos.En todas las otras imágenes podemos obtener la misma conclusión. 
+
+
+```{r fig9-per-route-jaipur, out.width="70%", fig.align='center', fig.cap='Figura 9. Comparación entre la demanda real y la demanda predicha para la ruta Jaipur City.'}
+knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Jaipur_City.png")
+```
+
+**Descripción:**
+La **Figura 9** muestra la comparación para la ruta **Jaipur City**, donde el modelo refleja adecuadamente los patrones estacionales y los picos en la demanda. Las diferencias tienden a ser pequeñas y es capaz de seguir las tendencias generales.
+
+
+```{r fig10-per-route-kerala, out.width="70%", fig.align='center', fig.cap='Figura 10. Comparación entre la demanda real y la demanda predicha para la ruta Kerala Backwaters.'}
+knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Kerala_Backwaters.png")
+```
+
+**Descripción:**
+En la **Figura 10**, para la ruta **Kerala Backwaters**, se observa que el modelo sigue bien la tendencia, especialmente en los períodos de alta temporada. Las discrepancias son más visibles en algunos puntos específicos de baja demanda.
+
+
+```{r fig11-per-route-leh, out.width="70%", fig.align='center', fig.cap='Figura 11. Comparación entre la demanda real y la demanda predicha para la ruta Leh Ladakh.'}
+knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Leh_Ladakh.png")
+```
+
+**Descripción:**
+La **Figura 11** presenta la comparación para la ruta **Leh Ladakh**, donde la demanda es muy estacional y concentrada en pocos meses. Esto hace que el modelo tenga un desafío mayor, pero logra captar correctamente los picos durante la temporada accesible.
+
+
+```{r fig12-per-route-tajmahal, out.width="70%", fig.align='center', fig.cap='Figura 12. Comparación entre la demanda real y la demanda predicha para la ruta Taj Mahal.'}
+knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Taj_Mahal.png")
+```
+
+**Descripción:**
+La **Figura 12** muestra los resultados para **Taj Mahal**, uno de los destinos con mayor volumen de pasajeros. El modelo captura con bastante precisión los comportamientos regulares, aunque presenta ligeras desviaciones en algunos períodos de alta demanda.
+
+
+## 3.8 Conclusiones
+
+* El modelo desarrollado, basado en una red LSTM con mecanismo de atención, logra capturar adecuadamente los patrones temporales y estacionales presentes en la demanda de transporte.
+
+* El error absoluto medio representa aproximadamente **1% del valor medio de la demanda**, lo cual indica que el modelo tiene una excelente capacidad predictiva para un problema de esta naturaleza.
+
+* La inclusión de variables como condiciones meteorológicas, tipo de vehículo, destino, horarios y estacionalidades contribuyó significativamente a la mejora en la precisión del modelo.
+
+* Aunque el RMSE es más alto debido a algunos errores puntuales, en general las predicciones son bastante consistentes.
+
+* Este modelo es adecuado para ser utilizado en la planificación operativa, como asignación de vehículos, gestión de rutas o estimación de ingresos en base a la demanda proyectada.
+
+---
 
 
 # 4 Módulo 2: Clasificación de Conducción Distractiva {#modulo2}
@@ -194,9 +517,9 @@ El conjunto de datos utilizado proviene de escenas reales captadas dentro de veh
 - `talking_phone`: uso del teléfono en llamada
 - `other_activities`: cualquier otra actividad distractora, como comer, dormir o interactuar con otros pasajeros
 
-El total de imágenes asciende a **7.267**, con una distribución de clases razonablemente balanceada. Esta distribución se visualiza en la Figura 10.
+El total de imágenes asciende a **7.267**, con una distribución de clases razonablemente balanceada. Esta distribución se visualiza en la Figura 13.
 
-```{r fig1-distrib-clases, out.width="60%", fig.align='center', fig.cap='Figura 10. Distribución de imágenes por clase en el dataset'}
+```{r fig13-distrib-clases, out.width="60%", fig.align='center', fig.cap='Figura 13. Distribución de imágenes por clase en el dataset'}
 knitr::include_graphics("imgs/drivers_classif/distrib_clase.png")
 ```
 
@@ -206,9 +529,9 @@ Las imágenes se redimensionaron a 224x224 píxeles y fueron procesadas utilizan
 
 Adicionalmente, empleamos `class_weights` calculados con `sklearn.utils.class_weight.compute_class_weight()` para penalizar la pérdida en función de la frecuencia de cada clase.
 
-También realizamos una exploración visual de las imágenes y ejemplos aleatorios, como se muestra en la Figura 11.
+También realizamos una exploración visual de las imágenes y ejemplos aleatorios, como se muestra en la Figura 14.
 
-```{r fig2-ejemplos-batch, out.width="60%", fig.align='center', fig.cap='Figura 11. Ejemplos aleatorios de imágenes del dataset'}
+```{r fig14-ejemplos-batch, out.width="60%", fig.align='center', fig.cap='Figura 14. Ejemplos aleatorios de imágenes del dataset'}
 knitr::include_graphics("imgs/drivers_classif/example_batch.png")
 ```
 
@@ -225,15 +548,15 @@ Este enfoque bottom-up nos permitió controlar el tamaño y complejidad del mode
 
 ## 4.4 Evaluación y Resultados {#44-evaluación-y-resultados}
 
-La Figura 12 muestra el comportamiento del modelo durante el entrenamiento. Se observa una convergencia estable, aunque con señales de sobreajuste moderado a partir de la época 25.
+La Figura 15 muestra el comportamiento del modelo durante el entrenamiento. Se observa una convergencia estable, aunque con señales de sobreajuste moderado a partir de la época 25.
 
-```{r fig3-accuracy-loss, out.width="60%", fig.align='center', fig.cap='Figura 12. Evolución de precisión y pérdida durante el entrenamiento'}
+```{r fig15-accuracy-loss, out.width="60%", fig.align='center', fig.cap='Figura 15. Evolución de precisión y pérdida durante el entrenamiento'}
 knitr::include_graphics("imgs/drivers_classif/accuracy_loss.png")
 ```
 
-La matriz de confusión (Figura 12) muestra un rendimiento destacado en clases clave como `talking_phone`, `texting_phone` y `safe_driving`.
+La matriz de confusión (Figura 16) muestra un rendimiento destacado en clases clave como `talking_phone`, `texting_phone` y `safe_driving`.
 
-```{r fig4-conf-matrix, out.width="60%", fig.align='center', fig.cap='Figura 13. Matriz de confusión del modelo en el conjunto de validación'}
+```{r fig16-conf-matrix, out.width="60%", fig.align='center', fig.cap='Figura 16. Matriz de confusión del modelo en el conjunto de validación'}
 knitr::include_graphics("imgs/drivers_classif/confusion_matrix.png")
 ```
 
@@ -304,8 +627,6 @@ En conclusión, el modelo cumple con los objetivos de clasificación propuestos,
 
 
 
-
-
 # 5. Módulo 3 - Recomendación de Destinos de Viaje {#modulo3}
 
 ## 5.1 Introducción
@@ -320,7 +641,7 @@ Antes de construir el modelo, se llevó a cabo un análisis exploratorio para en
 
 ### Distribución de Calificaciones
 
-```{r fig1, out.width="60%", fig.align='center', fig.cap='Figura 1. Distribución de la variable ExperienceRating'}
+```{r fig17, out.width="60%", fig.align='center', fig.cap='Figura 17. Distribución de la variable ExperienceRating'}
 knitr::include_graphics("imgs/recommend/rating_dist.png")
 ```
 
@@ -328,7 +649,7 @@ La variable `ExperienceRating` presenta una distribución relativamente uniforme
 
 ### Destinos más populares
 
-```{r fig2, out.width="60%", fig.align='center', fig.cap='Figura 2. Tipos de destino más comunes en el dataset'}
+```{r fig18, out.width="60%", fig.align='center', fig.cap='Figura 18. Tipos de destino más comunes en el dataset'}
 knitr::include_graphics("imgs/recommend/common_dest.png")
 ```
 
@@ -336,7 +657,7 @@ La frecuencia de destinos está relativamente balanceada entre las distintas cat
 
 ### Distribución por género
 
-```{r fig3, out.width="60%", fig.align='center', fig.cap='Figura 3. Distribución por género en los registros'}
+```{r fig19, out.width="60%", fig.align='center', fig.cap='Figura 19. Distribución por género en los registros'}
 knitr::include_graphics("imgs/recommend/gender_dist.png")
 ```
 
@@ -344,7 +665,7 @@ Se observa una distribución balanceada entre hombres y mujeres, lo cual es posi
 
 ### Calificación por tipo de destino
 
-```{r fig4, out.width="60%", fig.align='center', fig.cap='Figura 4. Distribución de ratings por tipo de destino'}
+```{r fig20, out.width="60%", fig.align='center', fig.cap='Figura 20. Distribución de ratings por tipo de destino'}
 knitr::include_graphics("imgs/recommend/rating_by_dest_type.png")
 ```
 
@@ -352,7 +673,7 @@ Las medianas de calificación son similares entre los distintos tipos de destino
 
 ### Correlaciones con `ExperienceRating`
 
-```{r fig5, out.width="60%", fig.align='center', fig.cap='Figura 5. Correlación de variables con ExperienceRating'}
+```{r fig21, out.width="60%", fig.align='center', fig.cap='Figura 22. Correlación de variables con ExperienceRating'}
 knitr::include_graphics("imgs/recommend/corr_obj.png")
 ```
 
@@ -360,7 +681,7 @@ No se evidencian correlaciones lineales fuertes con la variable objetivo, lo que
 
 ### Preferencias más comunes
 
-```{r fig6, out.width="60%", fig.align='center', fig.cap='Figura 6. Preferencias más comunes de los usuarios'}
+```{r fig23, out.width="60%", fig.align='center', fig.cap='Figura 24. Preferencias más comunes de los usuarios'}
 knitr::include_graphics("imgs/recommend/user_preferences.png")
 ```
 
@@ -368,7 +689,7 @@ Las preferencias de los usuarios son consistentes con las categorías más visit
 
 ### Distribución de visitas por mes
 
-```{r fig7, out.width="60%", fig.align='center', fig.cap='Figura 7. Cantidad de visitas registradas por mes'}
+```{r fig25, out.width="60%", fig.align='center', fig.cap='Figura 25. Cantidad de visitas registradas por mes'}
 knitr::include_graphics("imgs/recommend/visits_by_mo.png")
 ```
 
@@ -388,7 +709,7 @@ Se utilizó la función de pérdida MSE y el optimizador Adam. El modelo fue ent
 
 ### Curva de pérdida durante el entrenamiento
 
-```{r fig9, out.width="60%", fig.align='center', fig.cap='Figura 8. Evolución de la pérdida MSE en train y validación'}
+```{r fig26, out.width="60%", fig.align='center', fig.cap='Figura 26. Evolución de la pérdida MSE en train y validación'}
 knitr::include_graphics("imgs/recommend/mse.png")
 ```
 
@@ -396,7 +717,7 @@ Se observa una clara convergencia del modelo. La validación se estabiliza alred
 
 ### Predicción vs Real
 
-```{r fig8, out.width="60%", fig.align='center', fig.cap='Figura 9. Comparación entre rating real y predicho'}
+```{r fig27, out.width="60%", fig.align='center', fig.cap='Figura 27. Comparación entre rating real y predicho'}
 knitr::include_graphics("imgs/recommend/predictions.png")
 ```
 
@@ -410,7 +731,7 @@ knitr::kable(
     Métrica = c("MAE", "RMSE", "Correlación"),
     Valor = c(1.226, 1.493, 0.083)
   ),
-  caption = "Tabla 1: Métricas finales del modelo de recomendación",
+  caption = "Tabla 3: Métricas finales del modelo de recomendación",
   format = "html"
 ) %>%
   kableExtra::kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE) %>%
@@ -423,9 +744,6 @@ knitr::kable(
 - El modelo es simple, eficiente y puede integrarse fácilmente en una plataforma de turismo inteligente.
 - El filtrado colaborativo con embeddings demuestra ser efectivo incluso en conjuntos de datos con poca correlación lineal.
 
-
-
-
 # 6. Herramienta Web Integrada {#herramienta-web}
 
 Gráficas de predicción vs. demanda real para cada ruta de transporte.
@@ -437,9 +755,15 @@ preferencias previas.
 Análisis de la efectividad de las recomendaciones (usuarios satisfechos, incremento en la demanda de
 ciertas rutas, etc.).
 
-
 # 7. Resultados Generales y Discusión {#resultados}
 
+## Lecciones Aprendidas y Limitaciones del Módulo 1
+
+El desarrollo del modelo LSTM con atención permitió capturar patrones temporales como la estacionalidad, el efecto del clima y los eventos especiales en la demanda de transporte. Incorporar estas variables fue clave para mejorar las predicciones.
+
+Sin embargo, se presentaron desafíos en rutas con alta variabilidad o baja demanda, donde el modelo mostró mayor error. Además, al trabajar con datos sintéticos y agregados por día, el modelo puede no generalizar perfectamente a escenarios reales o predicciones en tiempo real.
+
+A pesar de estas limitaciones, el modelo demuestra ser una base sólida para entender el comportamiento de la demanda y abre la puerta a futuras mejoras.
 
 ## Lecciones Aprendidas y Limitaciones del Módulo 2
 
@@ -470,17 +794,41 @@ Sin embargo, enfrentamos algunas limitaciones importantes:
 
 Estas experiencias nos orientan hacia futuras mejoras como la incorporación de filtros dinámicos, variables contextuales y estrategias híbridas que combinen filtrado colaborativo con contenido explícito.
 
-
-
-
 # 8. Conclusiones y Recomendaciones {#conclusiones}
 
+Este proyecto logró desarrollar e integrar tres sistemas basados en inteligencia artificial enfocados en el ámbito del transporte y el turismo: un modelo de predicción de demanda, un modelo de clasificación de conducción distractiva y un sistema de recomendación turística.
+
+En el módulo de predicción de demanda, el uso de redes neuronales LSTM con mecanismo de atención demostró ser efectivo para capturar patrones estacionales, horarios y contextuales. A pesar de trabajar con datos sintéticos, el modelo mostró un buen desempeño relativo, lo que valida su diseño y su potencial aplicabilidad en entornos reales.
+
+El modelo de clasificación de conducción distractiva permitió comprender la importancia del diseño arquitectónico y de técnicas de regularización, especialmente cuando se trabaja con datos visuales y múltiples categorías de comportamiento.
+
+Por su parte, el sistema de recomendación implementado mostró cómo el análisis de perfiles y preferencias puede ser una herramienta poderosa para mejorar la experiencia de los usuarios en el sector turístico.
+
+Entre las principales recomendaciones se destacan:
+
+* Para modelos de predicción de demanda, trabajar en futuros proyectos con datos reales permitirá evaluar la robustez del modelo frente a patrones más complejos, además de garantizar su escalabilidad y aplicabilidad operativa.
+
+* Es recomendable explorar modelos más avanzados como Transformers para tareas de predicción de series temporales, dado su rendimiento superior en problemas con dependencias de largo plazo.
+
+* En la clasificación de conducción, sería pertinente ampliar el dataset con más clases o contextos, así como considerar el uso de arquitecturas preentrenadas para mejorar la generalización.
+
+* Para sistemas de recomendación, incorporar técnicas basadas en aprendizaje profundo o en modelos híbridos puede aumentar la personalización y la calidad de las sugerencias.
+
+En general, este proyecto evidencia que la aplicación de modelos de inteligencia artificial en transporte y turismo no solo es viable, sino también altamente efectiva cuando se realiza un diseño cuidadoso tanto de los datos como de los modelos.
 
 # 9. Aspectos Éticos y Creatividad {#etica}
 
+Durante el desarrollo de este proyecto, consideramos diversos aspectos éticos asociados al uso de datos y modelos de inteligencia artificial en el sector del transporte y turismo.
+
+En primer lugar, aunque el dataset de predicción de demanda fue generado de manera sintética, en un escenario real sería fundamental garantizar la privacidad de los datos personales de los usuarios, especialmente en los sistemas de recomendación y monitoreo de conductores. La anonimización y la protección de datos sensibles serían requisitos indispensables.
+
+Otro aspecto crítico es el sesgo en los datos. Al trabajar con datos históricos o específicos de ciertas regiones, existe el riesgo de que los modelos reproduzcan patrones injustos o no generalicen correctamente a otros contextos. Esto se observa, por ejemplo, en rutas con baja frecuencia o en comportamientos atípicos en el módulo de clasificación de conducción.
+
+En cuanto al módulo de recomendación, es importante garantizar la transparencia del sistema, evitando que las recomendaciones sean influenciadas únicamente por criterios comerciales y asegurando que respeten las preferencias reales de los usuarios.
+
+Finalmente, desde la creatividad, este proyecto demuestra cómo es posible integrar tres modelos distintos (predicción, clasificación y recomendación) en un ecosistema unificado. La generación de un dataset sintético realista, el diseño manual de arquitecturas de redes neuronales, y el despliegue de una herramienta web accesible, reflejan un proceso creativo con foco tanto en la innovación técnica como en la solución de problemas prácticos.
 
 # 10. Bibliografía {#bibliografia}
-
 
 
 <h2>Referencias</h2>
@@ -488,6 +836,7 @@ Estas experiencias nos orientan hacia futuras mejoras como la incorporación de 
 <ul>
   <li>Xiao, X., Li, C., Wang, X., & Zeng, A. (2025). Personalized tourism recommendation model based on temporal multilayer sequential neural network. <i>Scientific Reports, 15</i>(1), 382. <a href="https://doi.org/10.1038/s41598-024-84581-z" target="_blank">https://doi.org/10.1038/s41598-024-84581-z</a></li>
   <li>Sorum, N. G., & Sorum, M. G. (2025). Modeling of injury severity of distracted driving accident using statistical and machine learning models. <i>PLoS One, 20</i>(6), e0326113. <a href="https://doi.org/10.1371/journal.pone.0326113" target="_blank">https://doi.org/10.1371/journal.pone.0326113</a></li>
+  <li>Gao, K., Yang, J., Zhang, H., & Zhao, Z. (2023). Forecasting ride-hailing demand with LSTM neural networks: A case study in Shanghai. <i>Journal of Transport Geography, 109</i>, 103540. <a href="https://doi.org/10.1016/j.jtrangeo.2023.103540" target="_blank">https://doi.org/10.1016/j.jtrangeo.2023.103540</a></li>
   <li>Khan, M. A., & Auvee, R. B. Z. (2024). Comparative analysis of resource-efficient CNN architectures for brain tumor classification. <i>arXiv preprint</i> <a href="https://arxiv.org/abs/2411.15596" target="_blank">arXiv:2411.15596</a></li>
   <li>Ghaffar, S. (2023). <i>Classification of images to detect distracted drivers by using convolutional neural networks</i> (Master’s thesis, Toronto Metropolitan University). Toronto, Canada.</li>
   <li>OpenAI. (2024). <i>ChatGPT (June 2025 version)</i> [Large language model]. <a href="https://chat.openai.com/" target="_blank">https://chat.openai.com</a></li>
