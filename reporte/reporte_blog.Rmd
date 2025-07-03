@@ -60,8 +60,27 @@ knitr::opts_chunk$set(
   - [2.2 Fases del Proyecto](#fases)
   - [2.3 Herramientas y Tecnologías](#herramientas)
 - [3. Módulo 1 - Predicción de Demanda de Transporte](#modulo1)
+  - [3.1 Descripción del Dataset](#31-descripción-del-dataset)
+  - [3.2 EDA](#32-eda)
+  - [3.3 Preprocesamiento y Preparación de Datos](#33-preprocesamiento-y-preparación-de-datos)
+  - [3.4 Construcción y Entrenamiento del Modelo](#34-construcción-y-entrenamiento-del-modelo)
+  - [3.5 Resultados del Modelo](#35-resultados-del-modelo)
+  - [3.6 Análisis de las Métricas](#36-análisis-de-las-métricas)
+  - [3.7 Gráficas de los resultados](#37-gráficas-de-los-resultados)
+  - [3.8 Conclusiones](#38-conclusiones)
 - [4. Módulo 2 - Clasificación de Conducción Distractiva](#modulo2)
+  - [4.1 Descripción del Dataset](#41-descripción-del-dataset)
+  - [4.2 Preprocesamiento de Imágenes](#42-preprocesamiento-de-imágenes)
+  - [4.3 Arquitectura del Modelo](#43-arquitectura-del-modelo)
+  - [4.4 Evaluación y Resultados](#44-evaluación-y-resultados)
+  - [4.5 Análisis de Distracciones Comunes y Medidas Preventivas](#45-análisis-de-distracciones-comunes)
+  - [4.6 Proceso Iterativo de Optimización del Modelo](#46-proceso-optimizacion)
 - [5. Módulo 3 - Recomendación de Destinos de Viaje](#modulo3)
+  - [5.1 Introducción](#51-introducción)
+  - [5.2 Análisis Exploratorio de Datos](#52-análisis-exploratorio-de-datos)
+  - [5.3 Arquitectura del Modelo](#53-arquitectura-del-modelo)
+  - [5.4 Evaluación y Resultados](#54-evaluación-y-resultados)
+  - [5.5 Conclusiones](#55-conclusiones)
 - [6. Herramienta Web Integrada](#herramienta-web)
 - [7. Resultados Generales y Discusión](#resultados)
 - [8. Conclusiones y Recomendaciones](#conclusiones)
@@ -72,6 +91,16 @@ knitr::opts_chunk$set(
 ---
 
 ## Resumen Ejecutivo {#resumen-ejecutivo}
+
+El sector del transporte turístico enfrenta desafíos complejos que requieren soluciones tecnológicas avanzadas para optimizar operaciones, garantizar seguridad y personalizar experiencias. Este proyecto desarrolló un **sistema integrado de inteligencia artificial** que aborda tres problemas críticos: la predicción de demanda de transporte, la detección de conducción distractiva y la recomendación personalizada de destinos turísticos.
+
+**Problema y Objetivos:** Se identificaron tres necesidades fundamentales en empresas de transporte turístico: (1) anticipar la demanda de pasajeros para optimizar recursos y planificación operativa, (2) detectar comportamientos distractivos en conductores para mejorar la seguridad vial, y (3) ofrecer recomendaciones personalizadas de destinos para mejorar la experiencia del usuario. El objetivo principal fue desarrollar modelos de aprendizaje profundo funcionales e integrarlos en una herramienta web unificada.
+
+**Solución y Tecnologías:** Se implementaron tres módulos independientes utilizando diferentes arquitecturas de redes neuronales: (1) un modelo **LSTM con mecanismo de atención** para predicción de series temporales de demanda, (2) una **red neuronal convolucional (CNN)** diseñada desde cero para clasificación de imágenes de conductores, y (3) un sistema de **filtrado colaborativo con embeddings** para recomendación de destinos. Las tecnologías empleadas incluyeron Python, TensorFlow/Keras, Gradio para la interfaz web, y recursos de GPU gratuitos de Kaggle para entrenamiento.
+
+**Resultados Principales:** El modelo de predicción de demanda alcanzó un error absoluto medio de aproximadamente **113 pasajeros (1% del valor medio)**, demostrando excelente capacidad predictiva. El clasificador de conducción obtuvo un **accuracy de 64.7%** con F1-scores superiores a 0.77 en las clases críticas como `texting_phone` y `talking_phone`. El sistema de recomendación logró un **MAE de 1.226 estrellas** en la predicción de calificaciones, siendo efectivo para personalización básica. Los tres módulos fueron exitosamente integrados en una aplicación web funcional desplegada en Hugging Face Spaces.
+
+**Conclusión:** Este trabajo demuestra la viabilidad y efectividad de aplicar técnicas de aprendizaje profundo en el sector del transporte turístico. Los modelos desarrollados ofrecen un punto de partida robusto para sistemas de transporte inteligente, con potencial de implementación real tras ajustes con datos operativos específicos. La integración exitosa de múltiples modelos en una herramienta web accesible evidencia el valor práctico de soluciones de IA aplicadas a problemas empresariales reales.
 
 # 1 Introducción {#introduccion}
 
@@ -175,7 +204,7 @@ El uso articulado de estas tecnologías nos permitió mantener un flujo de traba
 
 # 3. Módulo 1 - Predicción de Demanda de Transporte {#modulo1}
 
-## 3.1 Descripción del Dataset
+## 3.1 Descripción del Dataset {#31-descripción-del-dataset}
 
 En este proyecto generamos un dataset sintético que simula la demanda de transporte turístico en India, específicamente en rutas que parten desde **Delhi Hub** hacia cinco destinos turísticos populares: **Taj Mahal, Goa Beaches, Jaipur City, Kerala Backwaters y Leh Ladakh**.
 
@@ -259,7 +288,7 @@ Esta predicción es útil para:
 - **Mejora en la rentabilidad:** Ajustar precios o promociones según la demanda esperada.
 
 
-## 3.2 EDA
+## 3.2 EDA {#32-eda}
 
 ### 1. **Demanda Diaria Total de Transporte (Gráfico 1)**
 
@@ -339,7 +368,7 @@ knitr::include_graphics("imgs/demanda/eda_demanda_7.png")
 Basado en el análisis exploratorio y en los requerimientos específicos del problema, la arquitectura seleccionada fue un modelo híbrido basado en LSTM con un mecanismo de atención. Esta elección se justifica porque las redes LSTM son especialmente adecuadas para trabajar con datos secuenciales como las series temporales, permitiendo capturar dependencias de largo plazo dentro de la demanda histórica. Además, la incorporación de una capa de atención permite al modelo enfocar su capacidad predictiva en los patrones más relevantes dentro de la secuencia, como las variaciones estacionales, los cambios por horarios o las fluctuaciones debidas a eventos especiales. Por otra parte, esta arquitectura es capaz de integrar tanto información temporal como variables categóricas o contextuales, lo que la hace especialmente robusta para abordar la complejidad del problema planteado.
 
 
-## 3.3 Preprocesamiento y Preparación de Datos
+## 3.3 Preprocesamiento y Preparación de Datos {#33-preprocesamiento-y-preparación-de-datos}
 
 El preprocesamiento del dataset incluyó un proceso de ingeniería de características donde, a partir de la fecha del viaje (`travel_date`), se extrajeron el año, el mes y el día de la semana. De manera similar, de la hora de salida (`travel_time`) se derivó la variable `hour`. También se generó la variable `high_season`, que indica si un viaje ocurre durante la temporada alta, definida según cada destino. Por ejemplo, para Taj Mahal corresponde de noviembre a febrero, para Goa Beaches de noviembre a marzo y para Leh Ladakh de abril a junio, entre otros.
 
@@ -350,7 +379,7 @@ El pipeline de preprocesamiento incluyó imputación de datos faltantes (mediana
 La división de datos se realizó respetando la secuencia temporal, utilizando el 80% de las fechas más antiguas para entrenamiento y el 20% más recientes para prueba. Posteriormente, se estructuró la serie temporal de demanda (`actual_passengers`) en secuencias, donde cada muestra utiliza los 90 días anteriores como entrada para predecir la demanda de los 30 días siguientes. Este esquema permite capturar la dependencia temporal de la serie y es adecuado para modelos LSTM.
 
 
-## 3.4 Construcción y Entrenamiento del Modelo
+## 3.4 Construcción y Entrenamiento del Modelo {#34-construcción-y-entrenamiento-del-modelo}
 
 ### Arquitectura del Modelo
 
@@ -412,7 +441,7 @@ El modelo se entrena con los siguientes parámetros:
 El entrenamiento finaliza de forma anticipada si la métrica de validación deja de mejorar, gracias al uso de EarlyStopping.
 
 
-## 3.5 Resultados del Modelo
+## 3.5 Resultados del Modelo {#35-resultados-del-modelo}
 
 ### Desempeño del Modelo
 
@@ -433,7 +462,7 @@ Estadísticas de la demanda real en el conjunto de prueba:
 * **Desviación estándar:** 925.96 pasajeros
 
 
-## 3.6 Análisis de las Métricas
+## 3.6 Análisis de las Métricas {#36-análisis-de-las-métricas}
 
 * El **MAE (Error Absoluto Medio)** de aproximadamente **113 pasajeros** indica que, en promedio, el modelo se equivoca por esa cantidad al predecir la demanda diaria. Comparado con una media de más de 10,000 pasajeros diarios, este error representa un porcentaje muy bajo (aproximadamente **1% del valor medio**), lo cual es excelente para este tipo de predicciones.
 
@@ -444,7 +473,7 @@ Estadísticas de la demanda real en el conjunto de prueba:
 * Comparado con la desviación estándar de la demanda real (**925.96**), el RMSE es algo menor pero está en la misma magnitud, lo cual es esperable. Esto implica que el error típico es menor que la variación natural de la demanda.
 
 
-## 3.7 Gráficas de los resultados
+## 3.7 Gráficas de los resultados {#37-gráficas-de-los-resultados}
 
 ```{r fig8-per-route-goa, out.width="70%", fig.align='center', fig.cap='Figura 8. Comparación entre la demanda real y la demanda predicha para la ruta Goa Beaches.'}
 knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Goa_Beaches.png")
@@ -486,7 +515,7 @@ knitr::include_graphics("imgs/demanda/per_route_pred_vs_real_Taj_Mahal.png")
 La **Figura 12** muestra los resultados para **Taj Mahal**, uno de los destinos con mayor volumen de pasajeros. El modelo captura con bastante precisión los comportamientos regulares, aunque presenta ligeras desviaciones en algunos períodos de alta demanda.
 
 
-## 3.8 Conclusiones
+## 3.8 Conclusiones {#38-conclusiones}
 
 * El modelo desarrollado, basado en una red LSTM con mecanismo de atención, logra capturar adecuadamente los patrones temporales y estacionales presentes en la demanda de transporte.
 
@@ -629,13 +658,13 @@ En conclusión, el modelo cumple con los objetivos de clasificación propuestos,
 
 # 5. Módulo 3 - Recomendación de Destinos de Viaje {#modulo3}
 
-## 5.1 Introducción
+## 5.1 Introducción {#51-introducción}
 
 En este módulo desarrollamos un sistema de recomendación de destinos basado en filtrado colaborativo. El objetivo es predecir la calificación (`ExperienceRating`) que un usuario daría a un destino turístico, utilizando únicamente su historial de visitas y características embebidas.
 
 Esta tarea se formuló como un problema de regresión, donde el modelo predice una calificación entre 1 y 5. Se utilizaron embeddings para representar tanto a usuarios como destinos y se entrenó un modelo de factorización matricial con Keras.
 
-## 5.2 Análisis Exploratorio de Datos
+## 5.2 Análisis Exploratorio de Datos {#52-análisis-exploratorio-de-datos}
 
 Antes de construir el modelo, se llevó a cabo un análisis exploratorio para entender la distribución de los datos y evaluar qué variables debían ser incluidas o descartadas.
 
@@ -695,7 +724,7 @@ knitr::include_graphics("imgs/recommend/visits_by_mo.png")
 
 Los datos están concentrados en el primer trimestre del año. Esto debe tenerse en cuenta para evitar sesgos temporales en los resultados.
 
-## 5.3 Arquitectura del Modelo
+## 5.3 Arquitectura del Modelo {#53-arquitectura-del-modelo}
 
 El modelo empleado es una red neuronal basada en factorización matricial simple con Keras. Esta arquitectura consiste en:
 
@@ -705,7 +734,7 @@ El modelo empleado es una red neuronal basada en factorización matricial simple
 
 Se utilizó la función de pérdida MSE y el optimizador Adam. El modelo fue entrenado con `EarlyStopping` y `ModelCheckpoint`.
 
-## 5.4 Evaluación y Resultados
+## 5.4 Evaluación y Resultados {#54-evaluación-y-resultados}
 
 ### Curva de pérdida durante el entrenamiento
 
@@ -738,7 +767,7 @@ knitr::kable(
   kableExtra::row_spec(0, bold = TRUE, color = "black", background = "lightgray")
 ```
 
-## 5.5 Conclusiones
+## 5.5 Conclusiones {#55-conclusiones}
 
 - Se logró construir un sistema de recomendación con un error promedio de 1.2 estrellas, lo cual es aceptable para fines exploratorios.
 - El modelo es simple, eficiente y puede integrarse fácilmente en una plataforma de turismo inteligente.
