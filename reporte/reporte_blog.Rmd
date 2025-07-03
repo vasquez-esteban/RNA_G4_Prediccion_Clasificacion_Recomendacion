@@ -82,6 +82,11 @@ knitr::opts_chunk$set(
   - [5.4 Evaluación y Resultados](#54-evaluación-y-resultados)
   - [5.5 Conclusiones](#55-conclusiones)
 - [6. Herramienta Web Integrada](#herramienta-web)
+  - [6.1 Arquitectura de la Aplicación](#61-arquitectura-de-la-aplicación)
+  - [6.2 Módulo de Clasificación de Conducción Distractiva](#62-módulo-de-clasificación)
+  - [6.3 Módulo de Predicción de Demanda de Transporte](#63-módulo-de-predicción)
+  - [6.4 Módulo de Recomendación de Destinos](#64-módulo-de-recomendación)
+  - [6.5 Despliegue y Accesibilidad](#65-despliegue-y-accesibilidad)
 - [7. Resultados Generales y Discusión](#resultados)
 - [8. Conclusiones y Recomendaciones](#conclusiones)
 - [9. Aspectos Éticos y Creatividad](#etica)
@@ -775,14 +780,122 @@ knitr::kable(
 
 # 6. Herramienta Web Integrada {#herramienta-web}
 
-Gráficas de predicción vs. demanda real para cada ruta de transporte.
+Para demostrar la aplicabilidad práctica de los modelos desarrollados, se implementó una **aplicación web interactiva** que integra los tres módulos de inteligencia artificial en una interfaz unificada y accesible. La herramienta fue desarrollada utilizando **Gradio**, un framework de Python que permite crear interfaces web para modelos de machine learning de manera sencilla y efectiva.
 
-Ejemplos de imágenes clasificadas correctamente y casos erróneos.
+## 6.1 Arquitectura de la Aplicación {#61-arquitectura-de-la-aplicación}
 
-Ejemplos de recomendaciones generadas para diferentes usuarios, mostrando destinos de viaje basados en
-preferencias previas.
-Análisis de la efectividad de las recomendaciones (usuarios satisfechos, incremento en la demanda de
-ciertas rutas, etc.).
+La aplicación web está estructurada como una **interfaz con pestañas** (`TabbedInterface`) que organiza cada módulo de manera independiente, permitiendo a los usuarios navegar fácilmente entre las diferentes funcionalidades:
+
+## 6.2 Módulo de Clasificación de Conducción Distractiva {#62-módulo-de-clasificación}
+
+### Funcionalidades Implementadas
+
+El módulo de clasificación permite a los usuarios cargar imágenes de conductores y obtener una predicción automática del comportamiento detectado. La interfaz incluye:
+
+- **Carga de imágenes**: Los usuarios pueden subir imágenes en formatos comunes (JPG, PNG, etc.)
+- **Clasificación automática**: El modelo CNN entrenado procesa la imagen y predice una de cinco categorías:
+  - Conducción segura
+  - Hablando por teléfono
+  - Escribiendo en el teléfono
+  - Girando
+  - Otras actividades
+
+### Procesamiento de Imágenes
+
+La imagen se redimensiona automáticamente a 224x224 píxeles (resolución requerida por el modelo), se normaliza y se procesa para obtener la predicción.
+
+### Ejemplos de Clasificación
+
+La aplicación web permite a los usuarios interactuar directamente con el modelo de clasificación de conducción a través de una interfaz intuitiva. A continuación se muestran ejemplos de uso real:
+
+```{r fig28-clasificacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 28. Interfaz de clasificación de conducción distractiva con instrucciones de uso.'}
+knitr::include_graphics("imgs/app/clasificacion_1.png")
+```
+
+La **Figura 28** muestra la interfaz principal del módulo de clasificación. En el recuadro (1) se observa la zona de carga de imágenes donde los usuarios pueden seleccionar archivos desde su computadora, tomar una foto directamente con la cámara, o pegar una imagen desde el portapapeles. El recuadro (2) muestra el área donde se despliega el resultado de la clasificación una vez procesada la imagen.
+
+```{r fig29-clasificacion-correcto, out.width="70%", fig.align='center', fig.cap='Figura 29. Ejemplo de clasificación correcta: conductor escribiendo en el teléfono.'}
+knitr::include_graphics("imgs/app/clasificacion_2.png")
+```
+
+En la **Figura 29** se presenta un caso exitoso donde el modelo clasifica correctamente a un conductor que está **"Escribiendo en el teléfono"** mientras conduce. El sistema detecta apropiadamente la postura característica y la presencia del dispositivo móvil, demostrando la capacidad del modelo para identificar este comportamiento de alto riesgo.
+
+```{r fig30-clasificacion-error, out.width="70%", fig.align='center', fig.cap='Figura 30. Ejemplo de clasificación errónea.'}
+knitr::include_graphics("imgs/app/clasificacion_3.png")
+```
+
+La **Figura 30** ilustra una limitación del modelo, donde clasifica incorrectamente una imagen de **conducción segura** como **"Otras actividades"**.
+
+## 6.3 Módulo de Predicción de Demanda de Transporte {#63-módulo-de-predicción}
+
+### Funcionalidades Implementadas
+
+El módulo de demanda ofrece una visualización de las predicciones del modelo LSTM para diferentes rutas turísticas:
+
+- **Selección de rutas**: Dropdown con cinco destinos disponibles:
+  - Goa Beaches
+  - Jaipur City
+  - Kerala Backwaters
+  - Leh Ladakh
+  - Taj Mahal
+
+- **Visualización automática**: Al seleccionar una ruta, se muestra automáticamente la gráfica correspondiente que compara la demanda real vs. predicha.
+
+### Gráficas de Predicción vs. Demanda Real
+
+El módulo de predicción de demanda ofrece una interfaz simple pero efectiva que permite visualizar los resultados del modelo LSTM para diferentes rutas turísticas:
+
+```{r fig31-demanda-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 31. Interfaz del módulo de predicción de demanda con ejemplo de la ruta Taj Mahal.'}
+knitr::include_graphics("imgs/app/demanda.png")
+```
+
+La **Figura 31** muestra la funcionalidad del módulo de predicción de demanda. Los usuarios pueden seleccionar cualquiera de las cinco rutas disponibles desde un menú desplegable, y automáticamente se muestra la gráfica correspondiente que compara la demanda real vs. la predicha por el modelo LSTM. En este ejemplo se observa la ruta hacia **Taj Mahal**, donde el modelo captura adecuadamente los patrones estacionales y las fluctuaciones en la demanda de pasajeros. La interfaz es intuitiva y permite a los operadores de transporte evaluar rápidamente el rendimiento predictivo del modelo para la planificación operativa.
+
+## 6.4 Módulo de Recomendación de Destinos {#64-módulo-de-recomendación}
+
+### Funcionalidades Implementadas
+
+El sistema de recomendación ofrece la funcionalidad más sofisticada de la aplicación:
+
+- **Entrada de usuario**: Campo de texto para ingresar el ID del usuario
+- **Perfilado automático**: Si el usuario existe en el sistema, se extrae su perfil completo
+- **Recomendaciones personalizadas**: Top 5 destinos recomendados con calificaciones predichas  
+
+### Ejemplos de Recomendaciones
+
+El sistema de recomendación demuestra su capacidad de personalización a través de una interfaz que extrae automáticamente el perfil del usuario y genera sugerencias adaptadas:
+
+```{r fig32-recomendacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 32. Interfaz del sistema de recomendación con ejemplo de usuario personalizado.'}
+knitr::include_graphics("imgs/app/recomendacion.png")
+```
+
+La **Figura 32** ilustra el funcionamiento del módulo de recomendación. En este ejemplo, el sistema analiza el perfil del **Usuario 525**, identificando que se trata de una persona de género femenino que viaja con 1 niño y 1 adulto, con preferencia por destinos aventureros y que usualmente viaja en enero. Basándose en esta información contextual, el sistema genera recomendaciones personalizadas:
+
+- **Recomendación 1**: Kerala Backwaters con calificación 2.2
+- **Recomendación 2**: Taj Mahal con calificación 2.2
+- **Recomendación 3**: Goa Beaches con calificación 2.2
+- **Recomendación 4**: Leh Ladakh con calificación 2.1
+- **Recomendación 5**: Jaipur City con calificación 2.1
+
+Es importante mencionar que los usuarios disponibles para análisis son aquellos que están registrados en el archivo `df_ready_for_training.csv`, de donde se extraen los IDs válidos para el sistema. Esta personalización demuestra la efectividad del filtrado colaborativo con embeddings para capturar las preferencias latentes de los usuarios y generar sugerencias relevantes para mejorar la experiencia turística.
+
+## 6.5 Despliegue y Accesibilidad {#65-despliegue-y-accesibilidad}
+
+### Plataforma de Despliegue
+
+La aplicación fue desplegada en **Hugging Face Spaces**, una plataforma que permite hospedar aplicaciones de machine learning de forma gratuita y accesible. Esto garantiza:
+
+- **Acceso universal**: Disponible desde cualquier navegador web
+- **Sin instalaciones**: No requiere configuración local por parte del usuario
+- **Escalabilidad**: Manejo automático de múltiples usuarios concurrentes
+- **Mantenimiento**: Actualizaciones automáticas cuando se modifica el código
+
+### Características de la Interfaz
+
+- **Diseño responsivo**: Compatible con dispositivos móviles y de escritorio
+- **Interfaz intuitiva**: Controles simples y claros para cada funcionalidad
+- **Retroalimentación inmediata**: Resultados mostrados en tiempo real
+- **Manejo de errores**: Validación de entradas y mensajes informativos
 
 # 7. Resultados Generales y Discusión {#resultados}
 
