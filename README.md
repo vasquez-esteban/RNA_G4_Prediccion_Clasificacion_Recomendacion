@@ -73,8 +73,8 @@ install.packages(c("ggplot2", "dplyr", "readxl", "kableExtra", "gganimate"))
 ## Publicaciones
 
 - Reporte en RPubs: [Reporte](https://rpubs.com/evasp/rna-g4-trabajo3)
-- **App Web**: Desplegada en Hugging Face [aquí](https://huggingface.co/spaces/evasp/rna-g4-trabajo3).
-- Video explicativo.
+- **App Web**: Desplegada en Hugging Face [Aquí](https://evasp-rna-g4-trabajo3.hf.space/).
+- Video explicativo [Aquí]().
 
 ---
 

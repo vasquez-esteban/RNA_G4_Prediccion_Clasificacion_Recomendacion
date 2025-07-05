@@ -297,7 +297,7 @@ Esta predicción es útil para:
 
 ### 1. **Demanda Diaria Total de Transporte (Gráfico 1)**
 
-```{r fig1-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 1.'}
+```{r fig1-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 1. Demanda total diaria'}
 knitr::include_graphics("imgs/demanda/eda_demanda_1.png")
 ```
 
@@ -307,7 +307,7 @@ knitr::include_graphics("imgs/demanda/eda_demanda_1.png")
 
 ### 2. **Descomposición Estacional de la Demanda Mensual (Gráfico 2)**
 
-```{r fig2-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 2. '}
+```{r fig2-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 2. Descomposición estacional de la Demanda Mensual'}
 knitr::include_graphics("imgs/demanda/eda_demanda_2.png")
 ```
 
@@ -319,7 +319,7 @@ La estacionalidad mensual sugiere que se debe incorporar **componentes estaciona
 
 ### 3. **Función de Autocorrelación (ACF) y Autocorrelación Parcial (PACF) (Gráfico 3)**
 
-```{r fig3-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 3. '}
+```{r fig3-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 3. Función ACF y PACF'}
 knitr::include_graphics("imgs/demanda/eda_demanda_3.png")
 ```
 
@@ -328,7 +328,7 @@ knitr::include_graphics("imgs/demanda/eda_demanda_3.png")
 
 ### 4. **Comparación con Diferenciación (Gráfico 4)**
 
-```{r fig4-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 4. '}
+```{r fig4-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 4. Comparación con diferenciación'}
 knitr::include_graphics("imgs/demanda/eda_demanda_4.png")
 ```
 
@@ -339,7 +339,7 @@ Esto es importante si se van a usar modelos tradicionales como SARIMA o ARIMA: n
 
 ### 5. **Demanda Mensual por Destino (Gráfico 5)**
 
-```{r fig5-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 5. '}
+```{r fig5-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 5. Demanda Mensual por Destino'}
 knitr::include_graphics("imgs/demanda/eda_demanda_5.png")
 ```
 
@@ -352,7 +352,7 @@ knitr::include_graphics("imgs/demanda/eda_demanda_5.png")
 
 ### 6. **Demanda Promedio por Día de la Semana (Gráfico 6)**
 
-```{r fig6-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 6. '}
+```{r fig6-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 6. Demanda promedio por día de la semana'}
 knitr::include_graphics("imgs/demanda/eda_demanda_6.png")
 ```
 
@@ -361,7 +361,7 @@ knitr::include_graphics("imgs/demanda/eda_demanda_6.png")
 
 ### 7. **Distribución de Pasajeros por Mes (Gráfico 7)**
 
-```{r fig7-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 7. '}
+```{r fig7-eda-demanda, out.width="60%", fig.align='center', fig.cap='Figura 7. Distribución de Pasajeros por Mes'}
 knitr::include_graphics("imgs/demanda/eda_demanda_7.png")
 ```
 
@@ -707,7 +707,7 @@ Las medianas de calificación son similares entre los distintos tipos de destino
 
 ### Correlaciones con `ExperienceRating`
 
-```{r fig21, out.width="60%", fig.align='center', fig.cap='Figura 22. Correlación de variables con ExperienceRating'}
+```{r fig21, out.width="60%", fig.align='center', fig.cap='Figura 21. Correlación de variables con ExperienceRating'}
 knitr::include_graphics("imgs/recommend/corr_obj.png")
 ```
 
@@ -715,7 +715,7 @@ No se evidencian correlaciones lineales fuertes con la variable objetivo, lo que
 
 ### Preferencias más comunes
 
-```{r fig23, out.width="60%", fig.align='center', fig.cap='Figura 24. Preferencias más comunes de los usuarios'}
+```{r fig22, out.width="60%", fig.align='center', fig.cap='Figura 22. Preferencias más comunes de los usuarios'}
 knitr::include_graphics("imgs/recommend/user_preferences.png")
 ```
 
@@ -723,7 +723,7 @@ Las preferencias de los usuarios son consistentes con las categorías más visit
 
 ### Distribución de visitas por mes
 
-```{r fig25, out.width="60%", fig.align='center', fig.cap='Figura 25. Cantidad de visitas registradas por mes'}
+```{r fig23, out.width="60%", fig.align='center', fig.cap='Figura 23. Cantidad de visitas registradas por mes'}
 knitr::include_graphics("imgs/recommend/visits_by_mo.png")
 ```
 
@@ -743,7 +743,7 @@ Se utilizó la función de pérdida MSE y el optimizador Adam. El modelo fue ent
 
 ### Curva de pérdida durante el entrenamiento
 
-```{r fig26, out.width="60%", fig.align='center', fig.cap='Figura 26. Evolución de la pérdida MSE en train y validación'}
+```{r fig24, out.width="60%", fig.align='center', fig.cap='Figura 24. Evolución de la pérdida MSE en train y validación'}
 knitr::include_graphics("imgs/recommend/mse.png")
 ```
 
@@ -751,7 +751,7 @@ Se observa una clara convergencia del modelo. La validación se estabiliza alred
 
 ### Predicción vs Real
 
-```{r fig27, out.width="60%", fig.align='center', fig.cap='Figura 27. Comparación entre rating real y predicho'}
+```{r fig25, out.width="60%", fig.align='center', fig.cap='Figura 25. Comparación entre rating real y predicho'}
 knitr::include_graphics("imgs/recommend/predictions.png")
 ```
 
@@ -808,23 +808,23 @@ La imagen se redimensiona automáticamente a 224x224 píxeles (resolución reque
 
 La aplicación web permite a los usuarios interactuar directamente con el modelo de clasificación de conducción a través de una interfaz intuitiva. A continuación se muestran ejemplos de uso real:
 
-```{r fig28-clasificacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 28. Interfaz de clasificación de conducción distractiva con instrucciones de uso.'}
+```{r fig26-clasificacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 26. Interfaz de clasificación de conducción distractiva con instrucciones de uso.'}
 knitr::include_graphics("imgs/app/clasificacion_1.png")
 ```
 
-La **Figura 28** muestra la interfaz principal del módulo de clasificación. En el recuadro (1) se observa la zona de carga de imágenes donde los usuarios pueden seleccionar archivos desde su computadora, tomar una foto directamente con la cámara, o pegar una imagen desde el portapapeles. El recuadro (2) muestra el área donde se despliega el resultado de la clasificación una vez procesada la imagen.
+La **Figura 26** muestra la interfaz principal del módulo de clasificación. En el recuadro (1) se observa la zona de carga de imágenes donde los usuarios pueden seleccionar archivos desde su computadora, tomar una foto directamente con la cámara, o pegar una imagen desde el portapapeles. El recuadro (2) muestra el área donde se despliega el resultado de la clasificación una vez procesada la imagen.
 
-```{r fig29-clasificacion-correcto, out.width="70%", fig.align='center', fig.cap='Figura 29. Ejemplo de clasificación correcta: conductor escribiendo en el teléfono.'}
+```{r fig27-clasificacion-correcto, out.width="70%", fig.align='center', fig.cap='Figura 27. Ejemplo de clasificación correcta: conductor escribiendo en el teléfono.'}
 knitr::include_graphics("imgs/app/clasificacion_2.png")
 ```
 
-En la **Figura 29** se presenta un caso exitoso donde el modelo clasifica correctamente a un conductor que está **"Escribiendo en el teléfono"** mientras conduce. El sistema detecta apropiadamente la postura característica y la presencia del dispositivo móvil, demostrando la capacidad del modelo para identificar este comportamiento de alto riesgo.
+En la **Figura 27** se presenta un caso exitoso donde el modelo clasifica correctamente a un conductor que está **"Escribiendo en el teléfono"** mientras conduce. El sistema detecta apropiadamente la postura característica y la presencia del dispositivo móvil, demostrando la capacidad del modelo para identificar este comportamiento de alto riesgo.
 
-```{r fig30-clasificacion-error, out.width="70%", fig.align='center', fig.cap='Figura 30. Ejemplo de clasificación errónea.'}
+```{r fig28-clasificacion-error, out.width="70%", fig.align='center', fig.cap='Figura 28. Ejemplo de clasificación errónea.'}
 knitr::include_graphics("imgs/app/clasificacion_3.png")
 ```
 
-La **Figura 30** ilustra una limitación del modelo, donde clasifica incorrectamente una imagen de **conducción segura** como **"Otras actividades"**.
+La **Figura 28** ilustra una limitación del modelo, donde clasifica incorrectamente una imagen de **conducción segura** como **"Otras actividades"**.
 
 ## 6.3 Módulo de Predicción de Demanda de Transporte {#63-módulo-de-predicción}
 
@@ -845,11 +845,11 @@ El módulo de demanda ofrece una visualización de las predicciones del modelo L
 
 El módulo de predicción de demanda ofrece una interfaz simple pero efectiva que permite visualizar los resultados del modelo LSTM para diferentes rutas turísticas:
 
-```{r fig31-demanda-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 31. Interfaz del módulo de predicción de demanda con ejemplo de la ruta Taj Mahal.'}
+```{r fig29-demanda-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 29. Interfaz del módulo de predicción de demanda con ejemplo de la ruta Taj Mahal.'}
 knitr::include_graphics("imgs/app/demanda.png")
 ```
 
-La **Figura 31** muestra la funcionalidad del módulo de predicción de demanda. Los usuarios pueden seleccionar cualquiera de las cinco rutas disponibles desde un menú desplegable, y automáticamente se muestra la gráfica correspondiente que compara la demanda real vs. la predicha por el modelo LSTM. En este ejemplo se observa la ruta hacia **Taj Mahal**, donde el modelo captura adecuadamente los patrones estacionales y las fluctuaciones en la demanda de pasajeros. La interfaz es intuitiva y permite a los operadores de transporte evaluar rápidamente el rendimiento predictivo del modelo para la planificación operativa.
+La **Figura 29** muestra la funcionalidad del módulo de predicción de demanda. Los usuarios pueden seleccionar cualquiera de las cinco rutas disponibles desde un menú desplegable, y automáticamente se muestra la gráfica correspondiente que compara la demanda real vs. la predicha por el modelo LSTM. En este ejemplo se observa la ruta hacia **Taj Mahal**, donde el modelo captura adecuadamente los patrones estacionales y las fluctuaciones en la demanda de pasajeros. La interfaz es intuitiva y permite a los operadores de transporte evaluar rápidamente el rendimiento predictivo del modelo para la planificación operativa.
 
 ## 6.4 Módulo de Recomendación de Destinos {#64-módulo-de-recomendación}
 
@@ -865,11 +865,11 @@ El sistema de recomendación ofrece la funcionalidad más sofisticada de la apli
 
 El sistema de recomendación demuestra su capacidad de personalización a través de una interfaz que extrae automáticamente el perfil del usuario y genera sugerencias adaptadas:
 
-```{r fig32-recomendacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 32. Interfaz del sistema de recomendación con ejemplo de usuario personalizado.'}
+```{r fig30-recomendacion-interfaz, out.width="70%", fig.align='center', fig.cap='Figura 30. Interfaz del sistema de recomendación con ejemplo de usuario personalizado.'}
 knitr::include_graphics("imgs/app/recomendacion.png")
 ```
 
-La **Figura 32** ilustra el funcionamiento del módulo de recomendación. En este ejemplo, el sistema analiza el perfil del **Usuario 525**, identificando que se trata de una persona de género femenino que viaja con 1 niño y 1 adulto, con preferencia por destinos aventureros y que usualmente viaja en enero. Basándose en esta información contextual, el sistema genera recomendaciones personalizadas:
+La **Figura 30** ilustra el funcionamiento del módulo de recomendación. En este ejemplo, el sistema analiza el perfil del **Usuario 525**, identificando que se trata de una persona de género femenino que viaja con 1 niño y 1 adulto, con preferencia por destinos aventureros y que usualmente viaja en enero. Basándose en esta información contextual, el sistema genera recomendaciones personalizadas:
 
 - **Recomendación 1**: Kerala Backwaters con calificación 2.2
 - **Recomendación 2**: Taj Mahal con calificación 2.2
@@ -1002,10 +1002,10 @@ Finalmente, desde la creatividad, este proyecto demuestra cómo es posible integ
 
 <h3>Aplicación Web Desplegada</h3>
 <ul>
-  <li><a href="https://huggingface.co/spaces/evasp/rna-g4-trabajo3" target="_blank">Hugging Face Space – Demo interactiva</a></li>
+  <li><a href="https://evasp-rna-g4-trabajo3.hf.space/" target="_blank">Hugging Face Space – Demo interactiva</a></li>
 </ul>
 
 <h3>Recursos Complementarios</h3>
 <ul>
-  <li><b>Presentación y video (por definir):</b> <a href="#" target="_blank">[Enlace pendiente]</a></li>
+  <li><b>Video (por definir):</b> <a href="#" target="_blank">[Enlace pendiente]</a></li>
 </ul>
