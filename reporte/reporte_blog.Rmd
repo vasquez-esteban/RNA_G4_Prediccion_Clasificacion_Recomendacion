@@ -1007,5 +1007,5 @@ Finalmente, desde la creatividad, este proyecto demuestra cómo es posible integ
 
 <h3>Recursos Complementarios</h3>
 <ul>
-  <li><b>Video (por definir):</b> <a href="#" target="_blank">[Enlace pendiente]</a></li>
+  <li><b>Video: </b><a href="https://www.youtube.com/watch?v=c_Ndzs11zYI" target="_blank">Enlace</a></li>
 </ul>
